@@ -30,8 +30,8 @@ jobs:
             - name: "install dependencies"
               run: "dev/bin/php composer update --ansi ${{ matrix.composer-flags }}"
 
-            - name: "run static analysis"
-              run: "dev/bin/php psalm --shepherd --stats"
+            - name: "run phpstan static analysis"
+              run: "dev/bin/php phpstan --ansi"
 
             - name: clear docker volumes
               if: ${{ always() }}

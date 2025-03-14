@@ -7,8 +7,6 @@ namespace League\Bundle\OAuth2ServerBundle\Security\User;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * @psalm-immutable
- *
  * @author Mathias Arlaud <mathias.arlaud@gmail.com>
  */
 final class ClientCredentialsUser implements UserInterface
@@ -28,17 +26,11 @@ final class ClientCredentialsUser implements UserInterface
         return $this->clientId;
     }
 
-    /**
-     * @psalm-mutation-free
-     */
     public function getRoles(): array
     {
         return [];
     }
 
-    /**
-     * @psalm-mutation-free
-     */
     public function eraseCredentials(): void
     {
         return;

@@ -159,6 +159,9 @@ final class GenerateKeyPairCommand extends Command
         return [$privateKey, $publicKeyData['key']];
     }
 
+    /**
+     * @return mixed[]
+     */
     private function buildOpenSSLConfiguration(string $algorithm): array
     {
         $digestAlgorithms = [

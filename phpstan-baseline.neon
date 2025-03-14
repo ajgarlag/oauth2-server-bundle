@@ -1,0 +1,79 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$message of class RuntimeException constructor expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Command/GenerateKeyPairCommand.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method League\\Bundle\\OAuth2ServerBundle\\Command\\ListClientsCommand\:\:getRows\(\) expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Command/ListClientsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$scope of class League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Scope constructor expects non\-empty\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Command/UpdateClientCommand.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$grants of method League\\Bundle\\OAuth2ServerBundle\\Model\\ClientInterface\:\:setGrants\(\) expects League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Grant, League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Grant\|League\\Bundle\\OAuth2ServerBundle\\ValueObject\\RedirectUri\|League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Scope given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Command/UpdateClientCommand.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$redirectUris of method League\\Bundle\\OAuth2ServerBundle\\Model\\ClientInterface\:\:setRedirectUris\(\) expects League\\Bundle\\OAuth2ServerBundle\\ValueObject\\RedirectUri, League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Grant\|League\\Bundle\\OAuth2ServerBundle\\ValueObject\\RedirectUri\|League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Scope given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Command/UpdateClientCommand.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$scopes of method League\\Bundle\\OAuth2ServerBundle\\Model\\ClientInterface\:\:setScopes\(\) expects League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Scope, League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Grant\|League\\Bundle\\OAuth2ServerBundle\\ValueObject\\RedirectUri\|League\\Bundle\\OAuth2ServerBundle\\ValueObject\\Scope given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Command/UpdateClientCommand.php
+
+		-
+			message: '#^Unable to resolve the template type T1 in call to method League\\Bundle\\OAuth2ServerBundle\\Command\\UpdateClientCommand\:\:getClientRelatedModelsFromInput\(\)$#'
+			identifier: argument.templateType
+			count: 2
+			path: src/Command/UpdateClientCommand.php
+
+		-
+			message: '#^Unable to resolve the template type T2 in call to method League\\Bundle\\OAuth2ServerBundle\\Command\\UpdateClientCommand\:\:getClientRelatedModelsFromInput\(\)$#'
+			identifier: argument.templateType
+			count: 2
+			path: src/Command/UpdateClientCommand.php
+
+		-
+			message: '#^Unable to resolve the template type T3 in call to method League\\Bundle\\OAuth2ServerBundle\\Command\\UpdateClientCommand\:\:getClientRelatedModelsFromInput\(\)$#'
+			identifier: argument.templateType
+			count: 2
+			path: src/Command/UpdateClientCommand.php
+
+		-
+			message: '#^Cannot call method getScopes\(\) on League\\Bundle\\OAuth2ServerBundle\\Security\\Passport\\Badge\\ScopeBadge\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Security/EventListener/CheckScopeListener.php
+
+		-
+			message: '#^Cannot call method isResolved\(\) on League\\Bundle\\OAuth2ServerBundle\\Security\\Passport\\Badge\\ScopeBadge\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Security/EventListener/CheckScopeListener.php
+
+		-
+			message: '#^Cannot call method markResolved\(\) on League\\Bundle\\OAuth2ServerBundle\\Security\\Passport\\Badge\\ScopeBadge\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Security/EventListener/CheckScopeListener.php
+
+		-
+			message: '#^Method League\\Bundle\\OAuth2ServerBundle\\Security\\User\\ClientCredentialsUser\:\:getUserIdentifier\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Security/User/ClientCredentialsUser.php

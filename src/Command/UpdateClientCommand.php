@@ -98,11 +98,10 @@ final class UpdateClientCommand extends Command
      * @template T2 of Grant
      * @template T3 of Scope
      *
+     * @param list<\Stringable> $actual
      * @param class-string<T1>|class-string<T2>|class-string<T3> $modelFqcn
      *
      * @return list<T1>|list<T2>|list<T3>
-     *
-     * @psalm-suppress UnsafeInstantiation
      */
     private function getClientRelatedModelsFromInput(InputInterface $input, string $modelFqcn, array $actual, string $argument): array
     {
