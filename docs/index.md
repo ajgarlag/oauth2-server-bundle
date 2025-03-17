@@ -133,7 +133,7 @@ security:
 
     ```yaml
     oauth2:
-        resource: '@LeagueOAuth2ServerBundle/Resources/config/routes.php'
+        resource: '@LeagueOAuth2ServerBundle/config/routes.php'
         type: php
     ```
 
