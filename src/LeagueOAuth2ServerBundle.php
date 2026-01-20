@@ -42,15 +42,18 @@ final class LeagueOAuth2ServerBundle extends Bundle
 
     private function configureDoctrineExtension(ContainerBuilder $container): void
     {
-        if (ContainerBuilder::willBeAvailable('doctrine/doctrine-bundle', DoctrineOrmMappingsPass::class, ['league/oauth2-server-bundle'])) {
-            $container->addCompilerPass(
-                new DoctrineOrmMappingsPass(
-                    new Reference(Driver::class),
-                    ['League\Bundle\OAuth2ServerBundle\Model'],
-                    ['league.oauth2_server.persistence.doctrine.manager'],
-                    'league.oauth2_server.persistence.doctrine.enabled'
-                )
-            );
+        if (!class_exists(DoctrineOrmMappingsPass::class)) {
+            return;
+        }
+
+        $container->addCompilerPass(
+            new DoctrineOrmMappingsPass(
+                new Reference(Driver::class),
+                ['League\Bundle\OAuth2ServerBundle\Model'],
+                ['league.oauth2_server.persistence.doctrine.manager'],
+                'league.oauth2_server.persistence.doctrine.enabled'
+            )
+        );
     }
 
     public function getPath(): string
