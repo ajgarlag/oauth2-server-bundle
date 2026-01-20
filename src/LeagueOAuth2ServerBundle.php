@@ -21,6 +21,8 @@ final class LeagueOAuth2ServerBundle extends Bundle
     {
         parent::build($container);
 
+        $container->addCompilerPass(new EncryptionKeyPass());
+
         $this->configureDoctrineExtension($container);
         $this->configureSecurityExtension($container);
     }
@@ -49,9 +51,6 @@ final class LeagueOAuth2ServerBundle extends Bundle
                     'league.oauth2_server.persistence.doctrine.enabled'
                 )
             );
-        }
-
-        $container->addCompilerPass(new EncryptionKeyPass());
     }
 
     public function getPath(): string
