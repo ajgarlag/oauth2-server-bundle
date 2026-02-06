@@ -37,6 +37,5 @@ final class ClientCredentialsUser implements UserInterface
     #[\Deprecated]
     public function eraseCredentials(): void
     {
-        return;
     }
 }

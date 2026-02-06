@@ -271,7 +271,7 @@ final class Configuration implements ConfigurationInterface
                     ->info(\sprintf('Set a custom client class. Must be a %s', AbstractClient::class))
                     ->defaultValue(Client::class)
                     ->validate()
-                        ->ifTrue(function ($v) {
+                        ->ifTrue(static function ($v) {
                             return !is_a($v, AbstractClient::class, true);
                         })
                         ->thenInvalid(\sprintf('%%s must be a %s', AbstractClient::class))

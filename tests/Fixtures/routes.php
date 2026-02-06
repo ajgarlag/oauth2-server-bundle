@@ -5,7 +5,7 @@ declare(strict_types=1);
 use League\Bundle\OAuth2ServerBundle\Tests\Fixtures\SecurityTestController;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-return function (RoutingConfigurator $routes) {
+return static function (RoutingConfigurator $routes) {
     $routes->import('@LeagueOAuth2ServerBundle/config/routes.php');
 
     $routes
