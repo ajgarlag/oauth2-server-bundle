@@ -56,9 +56,7 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
 
     public function persistDeviceCode(DeviceCodeEntityInterface $deviceCodeEntity): void
     {
-        $deviceCode = $this->deviceCodeManager->find($deviceCodeEntity->getIdentifier());
-
-        if (null === $deviceCode) {
+        if (null === $deviceCode = $this->deviceCodeManager->find($deviceCodeEntity->getIdentifier())) {
             $deviceCode = $this->buildDeviceCodeModel($deviceCodeEntity);
         } else {
             $deviceCode = $this->updateDeviceCodeModel($deviceCode, $deviceCodeEntity);
@@ -67,11 +65,9 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
         $this->deviceCodeManager->save($deviceCode);
     }
 
-    public function getDeviceCodeEntityByDeviceCode(string $deviceCodeEntity): ?DeviceCodeEntityInterface
+    public function getDeviceCodeEntityByDeviceCode(string $deviceCode): ?DeviceCodeEntityInterface
     {
-        $deviceCode = $this->deviceCodeManager->find($deviceCodeEntity);
-
-        if (null === $deviceCode) {
+        if (null === $deviceCode = $this->deviceCodeManager->find($deviceCode)) {
             return null;
         }
 
@@ -80,9 +76,7 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
 
     public function revokeDeviceCode(string $codeId): void
     {
-        $deviceCode = $this->deviceCodeManager->find($codeId);
-
-        if (null === $deviceCode) {
+        if (null === $deviceCode = $this->deviceCodeManager->find($codeId)) {
             return;
         }
 
@@ -93,9 +87,7 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
 
     public function isDeviceCodeRevoked(string $codeId): bool
     {
-        $deviceCode = $this->deviceCodeManager->find($codeId);
-
-        if (null === $deviceCode) {
+        if (null === $deviceCode = $this->deviceCodeManager->find($codeId)) {
             return true;
         }
 
@@ -107,21 +99,18 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
         $deviceCodeEntity = new DeviceCodeEntity();
         $deviceCodeEntity->setIdentifier($deviceCode->getIdentifier());
         $deviceCodeEntity->setExpiryDateTime($deviceCode->getExpiry());
-        $client = $this->clientRepository->getClientEntity($deviceCode->getClient()->getIdentifier());
-        if ($client) {
+        if (null !== $client = $this->clientRepository->getClientEntity($deviceCode->getClient()->getIdentifier())) {
             $deviceCodeEntity->setClient($client);
         }
-        if ($deviceCode->getUserIdentifier()) {
-            $deviceCodeEntity->setUserIdentifier($deviceCode->getUserIdentifier());
+        if (null !== $userIdentifier = $deviceCode->getUserIdentifier()) {
+            $deviceCodeEntity->setUserIdentifier($userIdentifier);
         }
-        $deviceCodeEntity->setUserCode($deviceCode->getUserCode());
         $deviceCodeEntity->setUserApproved($deviceCode->getUserApproved());
         $deviceCodeEntity->setVerificationUriCompleteInAuthResponse($deviceCode->getIncludeVerificationUriComplete());
         $deviceCodeEntity->setVerificationUri($deviceCode->getVerificationUri());
-        if ($deviceCode->getLastPolledAt()) {
-            $deviceCodeEntity->setLastPolledAt($deviceCode->getLastPolledAt());
+        if (null !== $lastPolledAt = $deviceCode->getLastPolledAt()) {
+            $deviceCodeEntity->setLastPolledAt($lastPolledAt);
         }
-        $deviceCodeEntity->setInterval($deviceCode->getInterval());
 
         foreach ($deviceCode->getScopes() as $scope) {
             $deviceCodeEntity->addScope($this->scopeConverter->toLeague($scope));
