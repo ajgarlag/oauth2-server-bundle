@@ -59,7 +59,7 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
         if (null === $deviceCode = $this->deviceCodeManager->find($deviceCodeEntity->getIdentifier())) {
             $deviceCode = $this->buildDeviceCodeModel($deviceCodeEntity);
         } else {
-            $deviceCode = $this->updateDeviceCodeModel($deviceCode, $deviceCodeEntity);
+            $this->updateDeviceCodeModel($deviceCode, $deviceCodeEntity);
         }
 
         $this->deviceCodeManager->save($deviceCode);
@@ -141,7 +141,7 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
     private function updateDeviceCodeModel(
         DeviceCodeInterface $deviceCode,
         DeviceCodeEntityInterface $deviceCodeEntity,
-    ): DeviceCodeInterface {
+    ): void {
         if ($deviceCodeEntity->getLastPolledAt()) {
             $deviceCode->setLastPolledAt($deviceCodeEntity->getLastPolledAt());
         }
@@ -150,7 +150,5 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
             $deviceCode->setUserIdentifier($deviceCodeEntity->getUserIdentifier());
             $deviceCode->setUserApproved($deviceCodeEntity->getUserApproved());
         }
-
-        return $deviceCode;
     }
 }
