@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use League\Bundle\OAuth2ServerBundle\AuthorizationServer\GrantTypeInterface;
 use League\Bundle\OAuth2ServerBundle\Command\CreateClientCommand;
 use League\Bundle\OAuth2ServerBundle\Command\GenerateKeyPairCommand;
+use League\Bundle\OAuth2ServerBundle\Command\HashClientSecretsCommand;
 use League\Bundle\OAuth2ServerBundle\DBAL\Type\Grant as GrantType;
 use League\Bundle\OAuth2ServerBundle\DBAL\Type\RedirectUri as RedirectUriType;
 use League\Bundle\OAuth2ServerBundle\DBAL\Type\Scope as ScopeType;
@@ -338,6 +339,16 @@ final class LeagueOAuth2ServerExtension extends Extension implements PrependExte
             ->replaceArgument(0, $config['client']['classname'])
             ->replaceArgument(1, $config['authorization_server']['persist_access_token'])
             ->replaceArgument(2, $persistenceConfig['table_prefix'])
+        ;
+
+        $connection = new Reference(
+            \sprintf('doctrine.dbal.%s_connection', $entityManagerName)
+        );
+
+        $container
+            ->findDefinition(HashClientSecretsCommand::class)
+            ->replaceArgument(0, $connection)
+            ->replaceArgument(1, $persistenceConfig['table_prefix'])
         ;
 
         $container->setParameter('league.oauth2_server.persistence.doctrine.enabled', true);

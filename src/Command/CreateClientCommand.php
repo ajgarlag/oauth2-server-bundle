@@ -99,7 +99,8 @@ final class CreateClientCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         try {
-            $client = $this->buildClientFromInput($input);
+            $plainSecret = $this->resolvePlainSecret($input);
+            $client = $this->buildClientFromInput($input, $plainSecret);
         } catch (\InvalidArgumentException $exception) {
             $io->error($exception->getMessage());
 
@@ -111,24 +112,28 @@ final class CreateClientCommand extends Command
 
         $headers = ['Identifier', 'Secret'];
         $rows = [
-            [$client->getIdentifier(), $client->getSecret()],
+            [$client->getIdentifier(), $plainSecret],
         ];
         $io->table($headers, $rows);
 
         return 0;
     }
 
-    private function buildClientFromInput(InputInterface $input): ClientInterface
+    private function resolvePlainSecret(InputInterface $input): ?string
     {
-        $name = $input->getArgument('name');
-        $identifier = (string) $input->getArgument('identifier') ?: hash('md5', random_bytes(16));
         $isPublic = $input->getOption('public');
 
         if ($isPublic && null !== $input->getArgument('secret')) {
             throw new \InvalidArgumentException('The client cannot have a secret and be public.');
         }
 
-        $secret = $isPublic ? null : $input->getArgument('secret') ?? hash('sha512', random_bytes(32));
+        return $isPublic ? null : $input->getArgument('secret') ?? hash('sha512', random_bytes(32));
+    }
+
+    private function buildClientFromInput(InputInterface $input, ?string $secret): ClientInterface
+    {
+        $name = $input->getArgument('name');
+        $identifier = (string) $input->getArgument('identifier') ?: hash('md5', random_bytes(16));
 
         /** @var AbstractClient $client */
         $client = new $this->clientFqcn($name, $identifier, $secret);

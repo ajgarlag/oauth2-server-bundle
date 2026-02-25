@@ -123,7 +123,7 @@ final class ListClientsCommand extends Command
             $values = [
                 'name' => $client->getName(),
                 'identifier' => $client->getIdentifier(),
-                'secret' => $client->getSecret(),
+                'secret' => $client->isConfidential() ? '****' : '(public)',
                 'scope' => implode(', ', $client->getScopes()),
                 'redirect uri' => implode(', ', $client->getRedirectUris()),
                 'grant type' => implode(', ', $client->getGrants()),

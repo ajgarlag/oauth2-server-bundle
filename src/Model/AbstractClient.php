@@ -37,7 +37,7 @@ abstract class AbstractClient implements ClientInterface
     {
         $this->name = $name;
         $this->identifier = $identifier;
-        $this->secret = $secret;
+        $this->secret = (null !== $secret && '' !== $secret) ? password_hash($secret, \PASSWORD_BCRYPT) : $secret;
     }
 
     public function getName(): string
@@ -117,6 +117,15 @@ abstract class AbstractClient implements ClientInterface
         $this->active = $active;
 
         return $this;
+    }
+
+    public function verifySecret(string $plainSecret): bool
+    {
+        if (null === $this->secret) {
+            return false;
+        }
+
+        return password_verify($plainSecret, $this->secret);
     }
 
     public function isConfidential(): bool

@@ -20,6 +20,8 @@ interface ClientInterface
 
     public function getSecret(): ?string;
 
+    public function verifySecret(string $plainSecret): bool;
+
     /**
      * @return list<RedirectUri>
      */

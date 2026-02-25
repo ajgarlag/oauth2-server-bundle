@@ -27,4 +27,33 @@ final class ClientEntityTest extends TestCase
             'Client with non empty secret is confidential' => ['f', true],
         ];
     }
+
+    public function testVerifySecretWithCorrectSecret(): void
+    {
+        $client = new Client('name', 'identifier', 'my-secret');
+
+        $this->assertTrue($client->verifySecret('my-secret'));
+    }
+
+    public function testVerifySecretWithWrongSecret(): void
+    {
+        $client = new Client('name', 'identifier', 'my-secret');
+
+        $this->assertFalse($client->verifySecret('wrong-secret'));
+    }
+
+    public function testVerifySecretOnPublicClient(): void
+    {
+        $client = new Client('name', 'identifier', null);
+
+        $this->assertFalse($client->verifySecret('any-secret'));
+    }
+
+    public function testSecretIsHashedNotPlainText(): void
+    {
+        $client = new Client('name', 'identifier', 'my-secret');
+
+        $this->assertNotSame('my-secret', $client->getSecret());
+        $this->assertStringStartsWith('$2y$', $client->getSecret());
+    }
 }
