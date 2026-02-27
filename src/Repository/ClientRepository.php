@@ -72,16 +72,7 @@ final class ClientRepository implements ClientRepositoryInterface
         }
 
         // Stored secret is a hash — verify with the hasher.
-        if (!$client->verifySecret($inputSecret, $this->hasher)) {
-            return false;
-        }
-
-        // Automatically rehash if the algorithm or cost settings have changed.
-        if ($this->hasher->needsRehash($storedSecret)) {
-            $this->rehashAndSave($client, $inputSecret);
-        }
-
-        return true;
+        return $client->verifySecret($inputSecret, $this->hasher);
     }
 
     private function isHashed(string $secret): bool
