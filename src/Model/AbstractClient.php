@@ -7,6 +7,7 @@ namespace League\Bundle\OAuth2ServerBundle\Model;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
 use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 /**
  * @author Mathias Arlaud <mathias.arlaud@gmail.com>
@@ -119,13 +120,20 @@ abstract class AbstractClient implements ClientInterface
         return $this;
     }
 
-    public function verifySecret(string $plainSecret): bool
+    public function verifySecret(string $plainSecret, PasswordHasherInterface $hasher): bool
     {
-        if (null === $this->secret) {
+        if (null === $this->secret || '' === $this->secret) {
             return false;
         }
 
-        return password_verify($plainSecret, $this->secret);
+        return $hasher->verify($this->secret, $plainSecret);
+    }
+
+    public function setHashedSecret(string $hashedSecret): self
+    {
+        $this->secret = $hashedSecret;
+
+        return $this;
     }
 
     public function isConfidential(): bool

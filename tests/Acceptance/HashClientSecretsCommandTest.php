@@ -6,6 +6,7 @@ namespace League\Bundle\OAuth2ServerBundle\Tests\Acceptance;
 
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
 {
@@ -13,7 +14,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
     {
         $connection = $this->getConnection();
 
-        $this->insertClientWithPlainSecret($connection, 'client-plain', 'plain-text-secret');
+        $this->insertClientWithSecret($connection, 'client-plain', 'plain-text-secret');
 
         $commandTester = $this->runCommand();
 
@@ -22,15 +23,16 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
 
         $hashedSecret = $connection->fetchOne('SELECT secret FROM oauth2_client WHERE identifier = ?', ['client-plain']);
         $this->assertStringStartsWith('$2y$', $hashedSecret);
-        $this->assertTrue(password_verify('plain-text-secret', $hashedSecret));
+        $this->assertTrue($this->getHasher()->verify($hashedSecret, 'plain-text-secret'));
     }
 
     public function testSkipAlreadyHashedSecrets(): void
     {
         $connection = $this->getConnection();
 
-        $bcryptHash = password_hash('already-hashed', \PASSWORD_BCRYPT);
-        $this->insertClientWithPlainSecret($connection, 'client-hashed', $bcryptHash);
+        // Pre-hash with the same hasher the command uses so needsRehash() returns false
+        $hashedByHasher = $this->getHasher()->hash('already-hashed');
+        $this->insertClientWithSecret($connection, 'client-hashed', $hashedByHasher);
 
         $commandTester = $this->runCommand();
 
@@ -39,7 +41,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
         $this->assertStringContainsString('1 already hashed', $commandTester->getDisplay());
 
         $storedSecret = $connection->fetchOne('SELECT secret FROM oauth2_client WHERE identifier = ?', ['client-hashed']);
-        $this->assertSame($bcryptHash, $storedSecret);
+        $this->assertSame($hashedByHasher, $storedSecret);
     }
 
     public function testSkipPublicClients(): void
@@ -63,12 +65,13 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
     public function testMixedClients(): void
     {
         $connection = $this->getConnection();
+        $hasher = $this->getHasher();
 
-        $this->insertClientWithPlainSecret($connection, 'plain-1', 'secret-one');
-        $this->insertClientWithPlainSecret($connection, 'plain-2', 'secret-two');
+        $this->insertClientWithSecret($connection, 'plain-1', 'secret-one');
+        $this->insertClientWithSecret($connection, 'plain-2', 'secret-two');
 
-        $bcryptHash = password_hash('hashed-secret', \PASSWORD_BCRYPT);
-        $this->insertClientWithPlainSecret($connection, 'already-hashed', $bcryptHash);
+        // Pre-hash with the same hasher so needsRehash() returns false
+        $this->insertClientWithSecret($connection, 'already-hashed', $hasher->hash('hashed-secret'));
 
         $connection->insert('oauth2_client', [
             'identifier' => 'public-client',
@@ -83,14 +86,14 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
         $this->assertStringContainsString('2 secret(s) hashed', $commandTester->getDisplay());
         $this->assertStringContainsString('1 already hashed', $commandTester->getDisplay());
 
-        $this->assertTrue(password_verify('secret-one', $connection->fetchOne(
-            'SELECT secret FROM oauth2_client WHERE identifier = ?',
-            ['plain-1']
-        )));
-        $this->assertTrue(password_verify('secret-two', $connection->fetchOne(
-            'SELECT secret FROM oauth2_client WHERE identifier = ?',
-            ['plain-2']
-        )));
+        $this->assertTrue($hasher->verify(
+            $connection->fetchOne('SELECT secret FROM oauth2_client WHERE identifier = ?', ['plain-1']),
+            'secret-one'
+        ));
+        $this->assertTrue($hasher->verify(
+            $connection->fetchOne('SELECT secret FROM oauth2_client WHERE identifier = ?', ['plain-2']),
+            'secret-two'
+        ));
     }
 
     private function getConnection(): Connection
@@ -98,7 +101,12 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
         return $this->client->getContainer()->get('database_connection');
     }
 
-    private function insertClientWithPlainSecret(Connection $connection, string $identifier, string $secret): void
+    private function getHasher(): PasswordHasherInterface
+    {
+        return $this->client->getContainer()->get(PasswordHasherInterface::class);
+    }
+
+    private function insertClientWithSecret(Connection $connection, string $identifier, string $secret): void
     {
         $connection->insert('oauth2_client', [
             'identifier' => $identifier,

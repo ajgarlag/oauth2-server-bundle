@@ -8,6 +8,7 @@ use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Model\Client;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 final class CreateClientCommandTest extends AbstractAcceptanceTest
 {
@@ -125,7 +126,8 @@ final class CreateClientCommandTest extends AbstractAcceptanceTest
             ->get(ClientManagerInterface::class)
             ->find('foobar');
         $this->assertInstanceOf(Client::class, $client);
-        $this->assertTrue($client->verifySecret('quzbaz'));
+        $hasher = $this->client->getContainer()->get(PasswordHasherInterface::class);
+        $this->assertTrue($client->verifySecret('quzbaz', $hasher));
         $this->assertTrue($client->isConfidential());
         $this->assertFalse($client->isPlainTextPkceAllowed());
     }

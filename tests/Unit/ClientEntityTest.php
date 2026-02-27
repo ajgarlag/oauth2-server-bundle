@@ -6,6 +6,7 @@ namespace League\Bundle\OAuth2ServerBundle\Tests\Unit;
 
 use League\Bundle\OAuth2ServerBundle\Model\Client;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
 
 final class ClientEntityTest extends TestCase
 {
@@ -30,23 +31,26 @@ final class ClientEntityTest extends TestCase
 
     public function testVerifySecretWithCorrectSecret(): void
     {
+        $hasher = new NativePasswordHasher();
         $client = new Client('name', 'identifier', 'my-secret');
 
-        $this->assertTrue($client->verifySecret('my-secret'));
+        $this->assertTrue($client->verifySecret('my-secret', $hasher));
     }
 
     public function testVerifySecretWithWrongSecret(): void
     {
+        $hasher = new NativePasswordHasher();
         $client = new Client('name', 'identifier', 'my-secret');
 
-        $this->assertFalse($client->verifySecret('wrong-secret'));
+        $this->assertFalse($client->verifySecret('wrong-secret', $hasher));
     }
 
     public function testVerifySecretOnPublicClient(): void
     {
+        $hasher = new NativePasswordHasher();
         $client = new Client('name', 'identifier', null);
 
-        $this->assertFalse($client->verifySecret('any-secret'));
+        $this->assertFalse($client->verifySecret('any-secret', $hasher));
     }
 
     public function testSecretIsHashedNotPlainText(): void

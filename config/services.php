@@ -59,14 +59,21 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 return static function (ContainerConfigurator $container): void {
     $container->services()
+
+        // Password hasher for client secrets
+        ->set('league.oauth2_server.password_hasher', NativePasswordHasher::class)
+        ->alias(PasswordHasherInterface::class, 'league.oauth2_server.password_hasher')
 
         // League repositories
         ->set('league.oauth2_server.repository.client', ClientRepository::class)
             ->args([
                 service(ClientManagerInterface::class),
+                service('league.oauth2_server.password_hasher'),
             ])
         ->alias(ClientRepositoryInterface::class, 'league.oauth2_server.repository.client')
         ->alias(ClientRepository::class, 'league.oauth2_server.repository.client')

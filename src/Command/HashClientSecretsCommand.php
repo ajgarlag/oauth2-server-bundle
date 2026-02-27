@@ -10,19 +10,22 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 #[AsCommand(name: 'league:oauth2-server:hash-client-secrets', description: 'Hashes existing plain-text client secrets using bcrypt')]
 final class HashClientSecretsCommand extends Command
 {
     private Connection $connection;
     private string $tablePrefix;
+    private PasswordHasherInterface $hasher;
 
-    public function __construct(Connection $connection, string $tablePrefix)
+    public function __construct(Connection $connection, string $tablePrefix, PasswordHasherInterface $hasher)
     {
         parent::__construct();
 
         $this->connection = $connection;
         $this->tablePrefix = $tablePrefix;
+        $this->hasher = $hasher;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -46,16 +49,14 @@ final class HashClientSecretsCommand extends Command
                 continue;
             }
 
-            if ($this->isAlreadyHashed($secret)) {
+            if (!$this->hasher->needsRehash($secret)) {
                 ++$alreadyHashed;
                 continue;
             }
 
-            $hashedSecret = password_hash($secret, \PASSWORD_BCRYPT);
-
             $this->connection->update(
                 $table,
-                ['secret' => $hashedSecret],
+                ['secret' => $this->hasher->hash($secret)],
                 ['identifier' => $row['identifier']]
             );
 
@@ -70,12 +71,5 @@ final class HashClientSecretsCommand extends Command
         ));
 
         return 0;
-    }
-
-    private function isAlreadyHashed(string $secret): bool
-    {
-        return str_starts_with($secret, '$2y$')
-            || str_starts_with($secret, '$2a$')
-            || str_starts_with($secret, '$2b$');
     }
 }
