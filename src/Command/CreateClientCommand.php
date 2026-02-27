@@ -7,7 +7,6 @@ namespace League\Bundle\OAuth2ServerBundle\Command;
 use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Model\AbstractClient;
 use League\Bundle\OAuth2ServerBundle\Model\ClientInterface;
-use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
 use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
@@ -18,6 +17,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 #[AsCommand(name: 'league:oauth2-server:create-client', description: 'Creates a new OAuth2 client')]
 final class CreateClientCommand extends Command

@@ -49,7 +49,7 @@ final class ClientRepositoryTest extends TestCase
     {
         // Simulate the auto-generated secret from CreateClientCommand (sha512 = 128 hex chars).
         $longSecret = hash('sha512', random_bytes(32));
-        $this->assertGreaterThan(72, strlen($longSecret));
+        $this->assertGreaterThan(72, \strlen($longSecret));
 
         $client = new Client('My App', 'my-client-long', $this->hasher->hash($longSecret));
         $this->clientManager->save($client);
