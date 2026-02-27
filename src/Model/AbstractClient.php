@@ -38,7 +38,7 @@ abstract class AbstractClient implements ClientInterface
     {
         $this->name = $name;
         $this->identifier = $identifier;
-        $this->secret = (null !== $secret && '' !== $secret) ? password_hash($secret, \PASSWORD_BCRYPT) : $secret;
+        $this->secret = $secret;
     }
 
     public function getName(): string

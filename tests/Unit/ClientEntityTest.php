@@ -32,7 +32,7 @@ final class ClientEntityTest extends TestCase
     public function testVerifySecretWithCorrectSecret(): void
     {
         $hasher = new NativePasswordHasher();
-        $client = new Client('name', 'identifier', 'my-secret');
+        $client = new Client('name', 'identifier', $hasher->hash('my-secret'));
 
         $this->assertTrue($client->verifySecret('my-secret', $hasher));
     }
@@ -40,7 +40,7 @@ final class ClientEntityTest extends TestCase
     public function testVerifySecretWithWrongSecret(): void
     {
         $hasher = new NativePasswordHasher();
-        $client = new Client('name', 'identifier', 'my-secret');
+        $client = new Client('name', 'identifier', $hasher->hash('my-secret'));
 
         $this->assertFalse($client->verifySecret('wrong-secret', $hasher));
     }
@@ -53,11 +53,13 @@ final class ClientEntityTest extends TestCase
         $this->assertFalse($client->verifySecret('any-secret', $hasher));
     }
 
-    public function testSecretIsHashedNotPlainText(): void
+    public function testConstructorStoresSecretAsIs(): void
     {
+        // The constructor no longer hashes — hashing is the responsibility of the
+        // service layer (e.g. CreateClientCommand) so that the same hasher is used
+        // for both creation and verification.
         $client = new Client('name', 'identifier', 'my-secret');
 
-        $this->assertNotSame('my-secret', $client->getSecret());
-        $this->assertStringStartsWith('$2y$', $client->getSecret());
+        $this->assertSame('my-secret', $client->getSecret());
     }
 }

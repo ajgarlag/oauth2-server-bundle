@@ -15,31 +15,53 @@ final class ClientRepositoryTest extends TestCase
 {
     private ClientRepository $repository;
     private ClientManager $clientManager;
+    private NativePasswordHasher $hasher;
 
     protected function setUp(): void
     {
+        $this->hasher = new NativePasswordHasher();
         $this->clientManager = new ClientManager(new EventDispatcher());
-        $this->repository = new ClientRepository($this->clientManager, new NativePasswordHasher());
+        $this->repository = new ClientRepository($this->clientManager, $this->hasher);
     }
 
     /**
-     * Regression test: a newly created confidential client stores its secret as a bcrypt hash
-     * (via the constructor). validateClient() must verify the plain secret against that hash.
+     * Regression test: a client created via CreateClientCommand stores its secret
+     * pre-hashed with NativePasswordHasher::hash() (which uses SHA-512+bcrypt for
+     * long passwords). validateClient() must verify the plain secret correctly.
      */
-    public function testValidateClientSucceedsWithHashedSecretStoredByConstructor(): void
+    public function testValidateClientSucceedsWithSecretHashedByHasher(): void
     {
-        // The constructor hashes the secret via password_hash($secret, PASSWORD_BCRYPT).
-        $client = new Client('My App', 'my-client', 'my-plain-secret');
+        $plainSecret = 'my-plain-secret';
+        $client = new Client('My App', 'my-client', $this->hasher->hash($plainSecret));
         $this->clientManager->save($client);
 
         $this->assertTrue(
-            $this->repository->validateClient('my-client', 'my-plain-secret', null)
+            $this->repository->validateClient('my-client', $plainSecret, null)
+        );
+    }
+
+    /**
+     * Regression test for the original bug: a long secret (>72 bytes, as produced by
+     * CreateClientCommand's sha512 fallback) must survive a round-trip through
+     * hash() and verify() without silent truncation.
+     */
+    public function testValidateClientSucceedsWithLongSecretOver72Bytes(): void
+    {
+        // Simulate the auto-generated secret from CreateClientCommand (sha512 = 128 hex chars).
+        $longSecret = hash('sha512', random_bytes(32));
+        $this->assertGreaterThan(72, strlen($longSecret));
+
+        $client = new Client('My App', 'my-client-long', $this->hasher->hash($longSecret));
+        $this->clientManager->save($client);
+
+        $this->assertTrue(
+            $this->repository->validateClient('my-client-long', $longSecret, null)
         );
     }
 
     public function testValidateClientFailsWithWrongSecret(): void
     {
-        $client = new Client('My App', 'my-client', 'my-plain-secret');
+        $client = new Client('My App', 'my-client', $this->hasher->hash('my-plain-secret'));
         $this->clientManager->save($client);
 
         $this->assertFalse(
@@ -47,17 +69,41 @@ final class ClientRepositoryTest extends TestCase
         );
     }
 
+    /**
+     * Plain-text migration path: clients whose secrets were stored as plain text
+     * (before hashing was introduced) are verified via hash_equals() and then
+     * automatically rehashed on first successful validation.
+     */
     public function testValidateClientSucceedsWithPlainTextLegacySecret(): void
     {
-        // Simulate a pre-migration client whose secret is stored as plain text.
         $client = new Client('Legacy App', 'legacy-client', 'plain-text-secret');
-        // Overwrite the constructor-hashed value with a plain-text secret to simulate
-        // a client that was persisted before the hashing migration.
-        $client->setHashedSecret('plain-text-secret');
         $this->clientManager->save($client);
 
         $this->assertTrue(
             $this->repository->validateClient('legacy-client', 'plain-text-secret', null)
+        );
+
+        // After successful plain-text validation the secret must have been upgraded to a hash.
+        $upgraded = $this->clientManager->find('legacy-client');
+        $this->assertNotSame('plain-text-secret', $upgraded->getSecret());
+        $this->assertTrue($this->hasher->verify($upgraded->getSecret(), 'plain-text-secret'));
+    }
+
+    /**
+     * Simulates what Doctrine does when hydrating a client from the database:
+     * the $secret field is set directly to the stored hash value via reflection,
+     * bypassing the constructor. setHashedSecret() replicates this path.
+     */
+    public function testValidateClientSucceedsWhenSecretSetDirectlyAsHash(): void
+    {
+        $plainSecret = 'my-plain-secret';
+
+        $client = new Client('My App', 'my-client-db', null);
+        $client->setHashedSecret($this->hasher->hash($plainSecret));
+        $this->clientManager->save($client);
+
+        $this->assertTrue(
+            $this->repository->validateClient('my-client-db', $plainSecret, null)
         );
     }
 
@@ -68,28 +114,9 @@ final class ClientRepositoryTest extends TestCase
         );
     }
 
-    /**
-     * Simulates what Doctrine does when hydrating a client from the database:
-     * it sets the $secret field directly to the stored hash via reflection,
-     * bypassing the constructor. setHashedSecret() replicates this path.
-     */
-    public function testValidateClientSucceedsWhenSecretSetDirectlyAsHash(): void
-    {
-        $plainSecret = 'my-plain-secret';
-        $hashedSecret = password_hash($plainSecret, \PASSWORD_BCRYPT);
-
-        $client = new Client('My App', 'my-client-db', 'placeholder');
-        $client->setHashedSecret($hashedSecret);
-        $this->clientManager->save($client);
-
-        $this->assertTrue(
-            $this->repository->validateClient('my-client-db', $plainSecret, null)
-        );
-    }
-
     public function testValidateClientReturnsFalseForInactiveClient(): void
     {
-        $client = (new Client('My App', 'inactive-client', 'secret'))->setActive(false);
+        $client = (new Client('My App', 'inactive-client', $this->hasher->hash('secret')))->setActive(false);
         $this->clientManager->save($client);
 
         $this->assertFalse(

@@ -240,6 +240,7 @@ return static function (ContainerConfigurator $container): void {
             ->args([
                 service(ClientManagerInterface::class),
                 null,
+                service('league.oauth2_server.password_hasher'),
             ])
             ->tag('console.command', ['command' => 'league:oauth2-server:create-client'])
         ->alias(CreateClientCommand::class, 'league.oauth2_server.command.create_client')

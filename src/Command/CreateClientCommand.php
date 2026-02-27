@@ -7,6 +7,7 @@ namespace League\Bundle\OAuth2ServerBundle\Command;
 use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Model\AbstractClient;
 use League\Bundle\OAuth2ServerBundle\Model\ClientInterface;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
 use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
@@ -31,12 +32,15 @@ final class CreateClientCommand extends Command
      */
     private $clientFqcn;
 
-    public function __construct(ClientManagerInterface $clientManager, string $clientFqcn)
+    private PasswordHasherInterface $hasher;
+
+    public function __construct(ClientManagerInterface $clientManager, string $clientFqcn, PasswordHasherInterface $hasher)
     {
         parent::__construct();
 
         $this->clientManager = $clientManager;
         $this->clientFqcn = $clientFqcn;
+        $this->hasher = $hasher;
     }
 
     protected function configure(): void
@@ -135,8 +139,10 @@ final class CreateClientCommand extends Command
         $name = $input->getArgument('name');
         $identifier = (string) $input->getArgument('identifier') ?: hash('md5', random_bytes(16));
 
+        $hashedSecret = null !== $secret ? $this->hasher->hash($secret) : null;
+
         /** @var AbstractClient $client */
-        $client = new $this->clientFqcn($name, $identifier, $secret);
+        $client = new $this->clientFqcn($name, $identifier, $hashedSecret);
         $client->setActive(true);
         $client->setAllowPlainTextPkce($input->getOption('allow-plain-text-pkce'));
 
