@@ -131,7 +131,7 @@ final class CreateClientCommand extends Command
             throw new \InvalidArgumentException('The client cannot have a secret and be public.');
         }
 
-        return $isPublic ? null : $input->getArgument('secret') ?? hash('sha512', random_bytes(32));
+        return $isPublic ? null : $input->getArgument('secret') ?? bin2hex(random_bytes(32));
     }
 
     private function buildClientFromInput(InputInterface $input, ?string $secret): ClientInterface
