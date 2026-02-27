@@ -8,7 +8,6 @@ use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Exception\CryptoException;
 use League\Bundle\OAuth2ServerBundle\Converter\ScopeConverter;
 use League\Bundle\OAuth2ServerBundle\Converter\UserConverter;
-use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
 use League\Bundle\OAuth2ServerBundle\Entity\User;
 use League\Bundle\OAuth2ServerBundle\Manager\AccessTokenManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Manager\AuthorizationCodeManagerInterface;
@@ -49,6 +48,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractIntegrationTest extends TestCase

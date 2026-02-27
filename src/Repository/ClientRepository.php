@@ -86,8 +86,8 @@ final class ClientRepository implements ClientRepositoryInterface
 
     private function isHashed(string $secret): bool
     {
-        return password_get_info($secret)['algo'] !== null
-            && password_get_info($secret)['algo'] !== 0;
+        return null !== password_get_info($secret)['algo']
+            && 0 !== password_get_info($secret)['algo'];
     }
 
     private function rehashAndSave(ClientInterface $client, string $plainSecret): void
