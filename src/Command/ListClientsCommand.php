@@ -66,6 +66,12 @@ final class ListClientsCommand extends Command
                 'Finds by allowed scope for client. Use this option multiple times to find by multiple scopes.',
                 []
             )
+            ->addOption(
+                'reveal-secret',
+                null,
+                InputOption::VALUE_NONE,
+                'Reveal the client secret in the output.'
+            )
         ;
     }
 
@@ -107,7 +113,7 @@ final class ListClientsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $columns = $this->getColumns($input);
-        $rows = $this->getRows($clients, $columns);
+        $rows = $this->getRows($clients, $columns, $input->getOption('reveal-secret'));
         $io->table($columns, $rows);
     }
 
@@ -117,13 +123,13 @@ final class ListClientsCommand extends Command
      *
      * @return array<array<string>>
      */
-    private function getRows(array $clients, array $columns): array
+    private function getRows(array $clients, array $columns, bool $revealSecret): array
     {
-        return array_map(static function (ClientInterface $client) use ($columns): array {
+        return array_map(static function (ClientInterface $client) use ($columns, $revealSecret): array {
             $values = [
                 'name' => $client->getName(),
                 'identifier' => $client->getIdentifier(),
-                'secret' => $client->getSecret(),
+                'secret' => $revealSecret ? $client->getSecret() : ($client->isConfidential() ? '****' : '(public)'),
                 'scope' => implode(', ', $client->getScopes()),
                 'redirect uri' => implode(', ', $client->getRedirectUris()),
                 'grant type' => implode(', ', $client->getGrants()),

@@ -94,7 +94,7 @@ final class TestKernel extends Kernel implements CompilerPassInterface
 
             $framework = [
                 'secret' => 'nope',
-                'test' => null,
+                'test' => true,
                 'router' => [
                     'resource' => __DIR__ . '/Fixtures/routes.php',
                     'type' => 'php',

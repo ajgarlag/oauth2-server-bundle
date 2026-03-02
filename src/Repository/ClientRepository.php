@@ -9,6 +9,7 @@ use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Model\ClientInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 final class ClientRepository implements ClientRepositoryInterface
 {
@@ -17,9 +18,15 @@ final class ClientRepository implements ClientRepositoryInterface
      */
     private $clientManager;
 
-    public function __construct(ClientManagerInterface $clientManager)
-    {
+    public function __construct(
+        ClientManagerInterface $clientManager,
+        private readonly ?PasswordHasherInterface $passwordHasher = null,
+    ) {
         $this->clientManager = $clientManager;
+
+        if (null === $this->passwordHasher) {
+            trigger_deprecation('league/oauth2-server-bundle', '1.2', 'Not passing a "%s" to "%s" is deprecated since version 1.2 and will be required in 2.0.', PasswordHasherInterface::class, __CLASS__);
+        }
     }
 
     public function getClientEntity(string $clientIdentifier): ?ClientEntityInterface
@@ -33,7 +40,7 @@ final class ClientRepository implements ClientRepositoryInterface
         return $this->buildClientEntity($client);
     }
 
-    public function validateClient(string $clientIdentifier, ?string $clientSecret, ?string $grantType): bool
+    public function validateClient(string $clientIdentifier, #[\SensitiveParameter] ?string $clientSecret, ?string $grantType): bool
     {
         $client = $this->clientManager->find($clientIdentifier);
 
@@ -49,11 +56,27 @@ final class ClientRepository implements ClientRepositoryInterface
             return false;
         }
 
-        if (!$client->isConfidential() || hash_equals((string) $client->getSecret(), (string) $clientSecret)) {
+        if (!$client->isConfidential()) {
             return true;
         }
 
-        return false;
+        $receivedClientSecret = (string) $clientSecret;
+        $storedClientSecret = (string) $client->getSecret();
+
+        if (null === $this->passwordHasher) {
+            return hash_equals($storedClientSecret, $receivedClientSecret);
+        }
+
+        $secretIsValid = $this->passwordHasher->verify($storedClientSecret, $receivedClientSecret);
+
+        if ($secretIsValid && $this->passwordHasher->needsRehash($storedClientSecret)) {
+            if (method_exists($client, 'setSecret')) {
+                $client->setSecret($this->passwordHasher->hash($receivedClientSecret));
+                $this->clientManager->save($client);
+            }
+        }
+
+        return $secretIsValid;
     }
 
     private function buildClientEntity(ClientInterface $client): ClientEntity

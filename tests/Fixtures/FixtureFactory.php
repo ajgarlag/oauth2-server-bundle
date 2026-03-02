@@ -260,7 +260,7 @@ final class FixtureFactory
         $clients[] = (new Client('name', self::FIXTURE_CLIENT_FIRST, 'secret'))
             ->setRedirectUris(new RedirectUri(self::FIXTURE_CLIENT_FIRST_REDIRECT_URI));
 
-        $clients[] = (new Client('name', self::FIXTURE_CLIENT_SECOND, 'top_secret'))
+        $clients[] = (new Client('name', self::FIXTURE_CLIENT_SECOND, '$2y$13$phnj0o2CCvCyJxdRyMIzV.9dd/08DsnaY90GAq/JCfZNjfXltXxqG')) // 'top_secret'
             ->setRedirectUris(new RedirectUri(self::FIXTURE_CLIENT_SECOND_REDIRECT_URI));
 
         $clients[] = (new Client('name', self::FIXTURE_CLIENT_INACTIVE, 'woah'))

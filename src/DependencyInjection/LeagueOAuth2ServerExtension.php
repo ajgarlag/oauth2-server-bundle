@@ -90,6 +90,18 @@ final class LeagueOAuth2ServerExtension extends Extension implements PrependExte
 
     public function prepend(ContainerBuilder $container): void
     {
+        // Configure default password hasher for clients if not already configured by the user
+        $container->prependExtensionConfig('security', [
+            'password_hashers' => [
+                'league_oauth2_server' => [
+                    'algorithm' => 'auto',
+                    'migrate_from' => [
+                        'plaintext',
+                    ],
+                ],
+            ],
+        ]);
+
         // If no doctrine connection is configured, the DBAL connection should
         // be left alone as adding any configuration setting with no connection
         // will result in an invalid configuration leading to a hard failure.
