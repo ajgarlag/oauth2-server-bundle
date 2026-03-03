@@ -18,12 +18,16 @@ final class ClientRepository implements ClientRepositoryInterface
      */
     private $clientManager;
 
-    private PasswordHasherInterface $hasher;
+    private ?PasswordHasherInterface $passwordHasher;
 
-    public function __construct(ClientManagerInterface $clientManager, PasswordHasherInterface $hasher)
+    public function __construct(ClientManagerInterface $clientManager, ?PasswordHasherInterface $passwordHasher = null)
     {
         $this->clientManager = $clientManager;
-        $this->hasher = $hasher;
+        $this->passwordHasher = $passwordHasher;
+
+        if (null === $this->passwordHasher) {
+            trigger_deprecation('league/oauth2-server-bundle', '1.2', 'Not passing a "%s" to "%s" is deprecated since version 1.2 and will be required in 2.0.', PasswordHasherInterface::class, __CLASS__);
+        }
     }
 
     public function getClientEntity(string $clientIdentifier): ?ClientEntityInterface
@@ -37,7 +41,7 @@ final class ClientRepository implements ClientRepositoryInterface
         return $this->buildClientEntity($client);
     }
 
-    public function validateClient(string $clientIdentifier, ?string $clientSecret, ?string $grantType): bool
+    public function validateClient(string $clientIdentifier, #[\SensitiveParameter] ?string $clientSecret, ?string $grantType): bool
     {
         $client = $this->clientManager->find($clientIdentifier);
 
@@ -60,31 +64,22 @@ final class ClientRepository implements ClientRepositoryInterface
         $storedSecret = (string) $client->getSecret();
         $inputSecret = (string) $clientSecret;
 
-        // Plain-text migration: stored secret is not a password hash yet.
-        // Compare directly and automatically upgrade to a hash on success.
-        if (!$this->isHashed($storedSecret)) {
-            if (!hash_equals($storedSecret, $inputSecret)) {
-                return false;
-            }
-            $this->rehashAndSave($client, $inputSecret);
-
-            return true;
+        if (null === $this->passwordHasher) {
+            return hash_equals($storedSecret, $inputSecret);
         }
 
-        // Stored secret is a hash — verify with the hasher.
-        return $client->verifySecret($inputSecret, $this->hasher);
-    }
+        $secretIsValid = $this->passwordHasher->verify($storedSecret, $inputSecret);
 
-    private function isHashed(string $secret): bool
-    {
-        return null !== password_get_info($secret)['algo']
-            && 0 !== password_get_info($secret)['algo'];
-    }
+        if ($secretIsValid && $this->passwordHasher->needsRehash($storedSecret)) {
+            if (!method_exists($client, 'setSecret')) {
+                trigger_deprecation('league/oauth2-server-bundle', '1.2', 'Not implementing method "setSecret()" in client "%s" is deprecated. This method will be required in 2.0.', $client::class);
+            } else {
+                $client->setSecret($this->passwordHasher->hash($inputSecret));
+                $this->clientManager->save($client);
+            }
+        }
 
-    private function rehashAndSave(ClientInterface $client, string $plainSecret): void
-    {
-        $client->setHashedSecret($this->hasher->hash($plainSecret));
-        $this->clientManager->save($client);
+        return $secretIsValid;
     }
 
     private function buildClientEntity(ClientInterface $client): ClientEntity

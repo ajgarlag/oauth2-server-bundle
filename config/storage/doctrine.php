@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
-use League\Bundle\OAuth2ServerBundle\Command\HashClientSecretsCommand;
 use League\Bundle\OAuth2ServerBundle\Manager\AccessTokenManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Manager\AuthorizationCodeManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
@@ -17,7 +16,6 @@ use League\Bundle\OAuth2ServerBundle\Persistence\Mapping\Driver;
 use League\Bundle\OAuth2ServerBundle\Service\CredentialsRevoker\DoctrineCredentialsRevoker;
 use League\Bundle\OAuth2ServerBundle\Service\CredentialsRevokerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 return static function (ContainerConfigurator $container): void {
@@ -69,14 +67,5 @@ return static function (ContainerConfigurator $container): void {
             ])
         ->alias(CredentialsRevokerInterface::class, 'league.oauth2_server.credentials_revoker.doctrine')
         ->alias(DoctrineCredentialsRevoker::class, 'league.oauth2_server.credentials_revoker.doctrine')
-
-        ->set('league.oauth2_server.command.hash_client_secrets', HashClientSecretsCommand::class)
-            ->args([
-                null,
-                null,
-                service(PasswordHasherInterface::class),
-            ])
-            ->tag('console.command', ['command' => 'league:oauth2-server:hash-client-secrets'])
-        ->alias(HashClientSecretsCommand::class, 'league.oauth2_server.command.hash_client_secrets')
     ;
 };

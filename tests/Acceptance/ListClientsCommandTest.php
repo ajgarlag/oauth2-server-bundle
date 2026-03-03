@@ -25,7 +25,7 @@ final class ListClientsCommandTest extends AbstractAcceptanceTest
         ]);
         $output = $commandTester->getDisplay();
         $expected = file_get_contents(__DIR__ . '/resource/list-clients.txt');
-        $this->assertEquals($this->normalizeTable($expected), $this->normalizeTable($output));
+        $this->assertEquals(trim($expected), trim($output));
     }
 
     public function testListClientsWithClientHavingNoSecret(): void
@@ -41,7 +41,7 @@ final class ListClientsCommandTest extends AbstractAcceptanceTest
         $output = $commandTester->getDisplay();
         $expected = file_get_contents(__DIR__ . '/resource/list-clients-with-client-having-no-secret.txt');
 
-        $this->assertEquals($this->normalizeTable($expected), $this->normalizeTable($output));
+        $this->assertEquals(trim($expected), trim($output));
     }
 
     public function testListClientsEmpty(): void
@@ -54,7 +54,7 @@ final class ListClientsCommandTest extends AbstractAcceptanceTest
         $output = $commandTester->getDisplay();
         $expected = file_get_contents(__DIR__ . '/resource/list-client-empty.txt');
 
-        $this->assertEquals($this->normalizeTable($expected), $this->normalizeTable($output));
+        $this->assertEquals(trim($expected), trim($output));
     }
 
     public function testListClientColumns(): void
@@ -86,7 +86,7 @@ final class ListClientsCommandTest extends AbstractAcceptanceTest
 
         $expected = file_get_contents(__DIR__ . '/resource/list-client-columns.txt');
 
-        $this->assertEquals($this->normalizeTable($expected), $this->normalizeTable($output));
+        $this->assertEquals(trim($expected), trim($output));
     }
 
     public function testListFiltersClients(): void
@@ -117,12 +117,7 @@ final class ListClientsCommandTest extends AbstractAcceptanceTest
 
         $expected = file_get_contents(__DIR__ . '/resource/list-filters-clients.txt');
 
-        $this->assertEquals($this->normalizeTable($expected), $this->normalizeTable($output));
-    }
-
-    private function normalizeTable(string $table): string
-    {
-        return implode("\n", array_map('rtrim', explode("\n", trim($table))));
+        $this->assertEquals(trim($expected), trim($output));
     }
 
     private function fakeAClient(string $name, string $identifier, ?string $secret = 'quzbaz'): Client

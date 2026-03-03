@@ -8,7 +8,7 @@ use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
-final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
+final class RehashClientSecretsCommandTest extends AbstractAcceptanceTest
 {
     public function testHashPlainTextSecrets(): void
     {
@@ -19,7 +19,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
         $commandTester = $this->runCommand();
 
         $this->assertSame(0, $commandTester->getStatusCode());
-        $this->assertStringContainsString('1 secret(s) hashed', $commandTester->getDisplay());
+        $this->assertStringContainsString('1 secret(s) rehashed', $commandTester->getDisplay());
 
         $hashedSecret = $connection->fetchOne('SELECT secret FROM oauth2_client WHERE identifier = ?', ['client-plain']);
         $this->assertStringStartsWith('$2y$', $hashedSecret);
@@ -37,7 +37,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
         $commandTester = $this->runCommand();
 
         $this->assertSame(0, $commandTester->getStatusCode());
-        $this->assertStringContainsString('0 secret(s) hashed', $commandTester->getDisplay());
+        $this->assertStringContainsString('0 secret(s) rehashed', $commandTester->getDisplay());
         $this->assertStringContainsString('1 already hashed', $commandTester->getDisplay());
 
         $storedSecret = $connection->fetchOne('SELECT secret FROM oauth2_client WHERE identifier = ?', ['client-hashed']);
@@ -59,7 +59,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
         $commandTester = $this->runCommand();
 
         $this->assertSame(0, $commandTester->getStatusCode());
-        $this->assertStringContainsString('0 secret(s) hashed', $commandTester->getDisplay());
+        $this->assertStringContainsString('0 secret(s) rehashed', $commandTester->getDisplay());
     }
 
     public function testMixedClients(): void
@@ -83,7 +83,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
 
         $commandTester = $this->runCommand();
 
-        $this->assertStringContainsString('2 secret(s) hashed', $commandTester->getDisplay());
+        $this->assertStringContainsString('2 secret(s) rehashed', $commandTester->getDisplay());
         $this->assertStringContainsString('1 already hashed', $commandTester->getDisplay());
 
         $this->assertTrue($hasher->verify(
@@ -103,7 +103,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
 
     private function getHasher(): PasswordHasherInterface
     {
-        return $this->client->getContainer()->get(PasswordHasherInterface::class);
+        return $this->client->getContainer()->get('league.oauth2_server.password_hasher');
     }
 
     private function insertClientWithSecret(Connection $connection, string $identifier, string $secret): void
@@ -119,7 +119,7 @@ final class HashClientSecretsCommandTest extends AbstractAcceptanceTest
 
     private function runCommand(): CommandTester
     {
-        $command = $this->application->find('league:oauth2-server:hash-client-secrets');
+        $command = $this->application->find('league:oauth2-server:rehash-client-secrets');
         $commandTester = new CommandTester($command);
         $commandTester->execute([]);
 

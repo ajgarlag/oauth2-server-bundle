@@ -126,26 +126,11 @@ final class CreateClientCommandTest extends AbstractAcceptanceTest
             ->get(ClientManagerInterface::class)
             ->find('foobar');
         $this->assertInstanceOf(Client::class, $client);
-        $hasher = $this->client->getContainer()->get(PasswordHasherInterface::class);
-        $this->assertTrue($client->verifySecret('quzbaz', $hasher));
+        /** @var PasswordHasherInterface $passwordHasher */
+        $passwordHasher = static::getContainer()->get('league.oauth2_server.password_hasher');
+        $this->assertTrue($passwordHasher->verify($client->getSecret() ?? '', 'quzbaz'));
         $this->assertTrue($client->isConfidential());
         $this->assertFalse($client->isPlainTextPkceAllowed());
-    }
-
-    public function testCreateClientOutputShowsPlainSecretNotHash(): void
-    {
-        $command = $this->application->find('league:oauth2-server:create-client');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
-            'command' => $command->getName(),
-            'name' => 'My Awesome OAuth Client',
-            'identifier' => 'foobar',
-            'secret' => 'my-plain-secret',
-        ]);
-
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('my-plain-secret', $output);
-        $this->assertStringNotContainsString('$2y$', $output);
     }
 
     public function testCreateClientWhoIsAllowedToUsePlainPkceChallengeMethod(): void

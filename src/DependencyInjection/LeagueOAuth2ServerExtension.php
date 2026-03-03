@@ -8,7 +8,6 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use League\Bundle\OAuth2ServerBundle\AuthorizationServer\GrantTypeInterface;
 use League\Bundle\OAuth2ServerBundle\Command\CreateClientCommand;
 use League\Bundle\OAuth2ServerBundle\Command\GenerateKeyPairCommand;
-use League\Bundle\OAuth2ServerBundle\Command\HashClientSecretsCommand;
 use League\Bundle\OAuth2ServerBundle\DBAL\Type\Grant as GrantType;
 use League\Bundle\OAuth2ServerBundle\DBAL\Type\RedirectUri as RedirectUriType;
 use League\Bundle\OAuth2ServerBundle\DBAL\Type\Scope as ScopeType;
@@ -46,6 +45,8 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\PasswordHasher\Hasher\MigratingPasswordHasher;
+use Symfony\Component\PasswordHasher\Hasher\PlaintextPasswordHasher;
 
 final class LeagueOAuth2ServerExtension extends Extension implements PrependExtensionInterface, CompilerPassInterface
 {
@@ -75,6 +76,18 @@ final class LeagueOAuth2ServerExtension extends Extension implements PrependExte
             ->findDefinition(CreateClientCommand::class)
             ->replaceArgument(1, $config['client']['classname'])
         ;
+
+        if ($config['client']['allow_plaintext_secrets']) {
+            trigger_deprecation('league/oauth2-server-bundle', '1.2', 'Setting "client.allow_plaintext_secrets" config option to "true" is deprecated. Use the `league:oauth2-server:rehash-client-secrets` command to rehash existing client secrets and set this option to "false" afterwards.');
+            $container->register('league.oauth2_server.password_hasher.plaintext', PlaintextPasswordHasher::class);
+            $container->register('league.oauth2_server.password_hasher.migrating', MigratingPasswordHasher::class)
+                ->setDecoratedService('league.oauth2_server.password_hasher')
+                ->setArguments([
+                    new Reference('league.oauth2_server.password_hasher.migrating.inner'),
+                    new Reference('league.oauth2_server.password_hasher.plaintext'),
+                ])
+            ;
+        }
 
         $container
             ->findDefinition(GenerateKeyPairCommand::class)
@@ -339,16 +352,6 @@ final class LeagueOAuth2ServerExtension extends Extension implements PrependExte
             ->replaceArgument(0, $config['client']['classname'])
             ->replaceArgument(1, $config['authorization_server']['persist_access_token'])
             ->replaceArgument(2, $persistenceConfig['table_prefix'])
-        ;
-
-        $connection = new Reference(
-            \sprintf('doctrine.dbal.%s_connection', $entityManagerName)
-        );
-
-        $container
-            ->findDefinition(HashClientSecretsCommand::class)
-            ->replaceArgument(0, $connection)
-            ->replaceArgument(1, $persistenceConfig['table_prefix'])
         ;
 
         $container->setParameter('league.oauth2_server.persistence.doctrine.enabled', true);

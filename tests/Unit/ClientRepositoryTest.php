@@ -9,19 +9,38 @@ use League\Bundle\OAuth2ServerBundle\Model\Client;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\PasswordHasher\Hasher\MigratingPasswordHasher;
 use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
+use Symfony\Component\PasswordHasher\Hasher\PlaintextPasswordHasher;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 final class ClientRepositoryTest extends TestCase
 {
     private ClientRepository $repository;
     private ClientManager $clientManager;
-    private NativePasswordHasher $hasher;
+    private PasswordHasherInterface $hasher;
 
     protected function setUp(): void
     {
         $this->hasher = new NativePasswordHasher();
         $this->clientManager = new ClientManager(new EventDispatcher());
         $this->repository = new ClientRepository($this->clientManager, $this->hasher);
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testValidateClientSucceedsWithoutPasswordHasher(): void
+    {
+        $plainSecret = 'my-plain-secret';
+        $client = new Client('My App', 'my-client', $plainSecret);
+        $this->clientManager->save($client);
+
+        $repositoryWithoutHasher = new ClientRepository($this->clientManager);
+
+        $this->assertTrue(
+            $repositoryWithoutHasher->validateClient('my-client', $plainSecret, null)
+        );
     }
 
     /**
@@ -71,16 +90,19 @@ final class ClientRepositoryTest extends TestCase
 
     /**
      * Plain-text migration path: clients whose secrets were stored as plain text
-     * (before hashing was introduced) are verified via hash_equals() and then
-     * automatically rehashed on first successful validation.
+     * (before hashing was introduced) are verified and then automatically
+     * rehashed on first successful validation.
      */
     public function testValidateClientSucceedsWithPlainTextLegacySecret(): void
     {
         $client = new Client('Legacy App', 'legacy-client', 'plain-text-secret');
         $this->clientManager->save($client);
 
+        $migratingHasher = new MigratingPasswordHasher($this->hasher, new PlaintextPasswordHasher());
+        $repositoryWithMigratingHasher = new ClientRepository($this->clientManager, $migratingHasher);
+
         $this->assertTrue(
-            $this->repository->validateClient('legacy-client', 'plain-text-secret', null)
+            $repositoryWithMigratingHasher->validateClient('legacy-client', 'plain-text-secret', null)
         );
 
         // After successful plain-text validation the secret must have been upgraded to a hash.
@@ -92,14 +114,14 @@ final class ClientRepositoryTest extends TestCase
     /**
      * Simulates what Doctrine does when hydrating a client from the database:
      * the $secret field is set directly to the stored hash value via reflection,
-     * bypassing the constructor. setHashedSecret() replicates this path.
+     * bypassing the constructor. setSecret() replicates this path.
      */
     public function testValidateClientSucceedsWhenSecretSetDirectlyAsHash(): void
     {
         $plainSecret = 'my-plain-secret';
 
         $client = new Client('My App', 'my-client-db', null);
-        $client->setHashedSecret($this->hasher->hash($plainSecret));
+        $client->setSecret($this->hasher->hash($plainSecret));
         $this->clientManager->save($client);
 
         $this->assertTrue(

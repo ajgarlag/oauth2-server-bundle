@@ -7,10 +7,10 @@ namespace League\Bundle\OAuth2ServerBundle\Model;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
 use League\Bundle\OAuth2ServerBundle\ValueObject\RedirectUri;
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
-use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 /**
  * @method string getName()
+ * @method void setSecret(string $secret)
  */
 interface ClientInterface
 {
@@ -21,9 +21,7 @@ interface ClientInterface
 
     public function getSecret(): ?string;
 
-    public function verifySecret(string $plainSecret, PasswordHasherInterface $hasher): bool;
-
-    public function setHashedSecret(string $hashedSecret): self;
+    // public function setSecret(string $secret): void;
 
     /**
      * @return list<RedirectUri>

@@ -49,6 +49,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractIntegrationTest extends TestCase
@@ -99,6 +100,11 @@ abstract class AbstractIntegrationTest extends TestCase
     private $psrFactory;
 
     /**
+     * @var PasswordHasherInterface
+     */
+    protected $passwordHasher;
+
+    /**
      * @var bool
      */
     private $requireCodeChallengeForPublicClients = true;
@@ -111,10 +117,11 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->accessTokenManager = new AccessTokenManager(true);
         $this->refreshTokenManager = new RefreshTokenManager();
         $this->authCodeManager = new AuthorizationCodeManager();
+        $this->passwordHasher = new NativePasswordHasher();
 
         $scopeConverter = new ScopeConverter();
         $scopeRepository = new ScopeRepository($this->scopeManager, $this->clientManager, $scopeConverter, $this->eventDispatcher);
-        $clientRepository = new ClientRepository($this->clientManager, new NativePasswordHasher());
+        $clientRepository = new ClientRepository($this->clientManager, $this->passwordHasher);
         $accessTokenRepository = new AccessTokenRepository($this->accessTokenManager, $this->clientManager, $scopeConverter);
         $refreshTokenRepository = new RefreshTokenRepository($this->refreshTokenManager, $this->accessTokenManager);
         $userConverter = new UserConverter();
