@@ -32,19 +32,15 @@ final class CreateClientCommand extends Command
      */
     private $clientFqcn;
 
-    private ?PasswordHasherInterface $passwordHasher = null;
+    private PasswordHasherInterface $passwordHasher;
 
-    public function __construct(ClientManagerInterface $clientManager, string $clientFqcn, ?PasswordHasherInterface $passwordHasher = null)
+    public function __construct(ClientManagerInterface $clientManager, string $clientFqcn, PasswordHasherInterface $passwordHasher)
     {
         parent::__construct();
 
         $this->clientManager = $clientManager;
         $this->clientFqcn = $clientFqcn;
         $this->passwordHasher = $passwordHasher;
-
-        if (null === $this->passwordHasher) {
-            trigger_deprecation('league/oauth2-server-bundle', '1.2', 'Not passing a "%s" to "%s" is deprecated since version 1.2 and will be required in 2.0.', PasswordHasherInterface::class, __CLASS__);
-        }
     }
 
     protected function configure(): void
@@ -144,7 +140,7 @@ final class CreateClientCommand extends Command
         $identifier = (string) $input->getArgument('identifier') ?: hash('md5', random_bytes(16));
 
         $hashedSecret = $plainSecret;
-        if ($this->passwordHasher && \is_string($plainSecret)) {
+        if (\is_string($plainSecret)) {
             $hashedSecret = $this->passwordHasher->hash($plainSecret);
         }
 
