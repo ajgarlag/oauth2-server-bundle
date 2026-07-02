@@ -11,3 +11,4 @@ FROM 1.x to 2.0
  * The `client.allow_plaintext_secrets` option value is now ignored and plaintext client secrets are no longer supported
  * Add method `setSecret` to `ClientInterface`
  * Add `PasswordHasherInterface` argument to `CreateClientCommand::__construct()`
+ * Add `PasswordHasherInterface` argument to `ClientRepository::__construct()`
