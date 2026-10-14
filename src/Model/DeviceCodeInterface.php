@@ -6,6 +6,9 @@ namespace League\Bundle\OAuth2ServerBundle\Model;
 
 use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
 
+/**
+ * @method self setIncludeVerificationUriComplete(bool $includeVerificationUriComplete)
+ */
 interface DeviceCodeInterface
 {
     public function __toString(): string;

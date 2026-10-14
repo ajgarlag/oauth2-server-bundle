@@ -14,3 +14,4 @@ FROM 1.1 to 1.2
  * Deprecate not passing a `PasswordHasherInterface` instance to `ClientRepository::__construct()`
  * Deprecate service `league.oauth2_server.authorization_server.grant_configurator`. It will be removed in 2.0
  * Deprecate service alias `League\Bundle\OAuth2ServerBundle\AuthorizationServer\GrantConfigurator`. It will be removed in 2.0
+ * Deprecate not implementing method `DeviceCodeInterface::setIncludeVerificationUriComplete()`. This method will be required in 2.0

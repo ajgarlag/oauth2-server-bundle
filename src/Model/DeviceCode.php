@@ -102,6 +102,13 @@ class DeviceCode implements DeviceCodeInterface
         return $this->includeVerificationUriComplete;
     }
 
+    public function setIncludeVerificationUriComplete(bool $includeVerificationUriComplete): DeviceCodeInterface
+    {
+        $this->includeVerificationUriComplete = $includeVerificationUriComplete;
+
+        return $this;
+    }
+
     public function getVerificationUri(): string
     {
         return $this->verificationUri;

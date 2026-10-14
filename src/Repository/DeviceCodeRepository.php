@@ -110,7 +110,7 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
         /** @var AbstractClient $client */
         $client = $this->clientManager->find($deviceCodeEntity->getClient()->getIdentifier());
 
-        return new DeviceCodeModel(
+        $deviceCodeModel = new DeviceCodeModel(
             $deviceCodeEntity->getIdentifier(),
             $deviceCodeEntity->getExpiryDateTime(),
             $client,
@@ -122,6 +122,12 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
             $deviceCodeEntity->getLastPolledAt(),
             $deviceCodeEntity->getInterval()
         );
+
+        if (method_exists($deviceCodeEntity, 'getVerificationUriCompleteInAuthResponse')) {
+            $deviceCodeModel->setIncludeVerificationUriComplete($deviceCodeEntity->getVerificationUriCompleteInAuthResponse());
+        }
+
+        return $deviceCodeModel;
     }
 
     private function updateDeviceCodeModel(
@@ -135,6 +141,13 @@ final class DeviceCodeRepository implements DeviceCodeRepositoryInterface
         if (null !== $userIdentifier && '' !== $userIdentifier) {
             $deviceCode->setUserIdentifier($userIdentifier);
             $deviceCode->setUserApproved($deviceCodeEntity->getUserApproved());
+        }
+        if (method_exists($deviceCodeEntity, 'getVerificationUriCompleteInAuthResponse')) {
+            if (!method_exists($deviceCode, 'setIncludeVerificationUriComplete')) {
+                trigger_deprecation('league/oauth2-server-bundle', '1.2', 'Not implementing method "setIncludeVerificationUriComplete()" in device code "%s" is deprecated. This method will be required in 2.0.', $deviceCode::class);
+            } else {
+                $deviceCode->setIncludeVerificationUriComplete($deviceCodeEntity->getVerificationUriCompleteInAuthResponse());
+            }
         }
     }
 }
