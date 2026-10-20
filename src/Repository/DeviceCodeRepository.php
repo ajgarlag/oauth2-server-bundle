@@ -91,7 +91,9 @@ final readonly class DeviceCodeRepository implements DeviceCodeRepositoryInterfa
         }
         $deviceCodeEntity->setUserCode($deviceCode->getUserCode());
         $deviceCodeEntity->setUserApproved($deviceCode->getUserApproved());
-        $deviceCodeEntity->setVerificationUriCompleteInAuthResponse($deviceCode->getIncludeVerificationUriComplete());
+        if (method_exists($deviceCodeEntity, 'setVerificationUriCompleteInAuthResponse')) {
+            $deviceCodeEntity->setVerificationUriCompleteInAuthResponse($deviceCode->getIncludeVerificationUriComplete());
+        }
         $deviceCodeEntity->setVerificationUri($deviceCode->getVerificationUri());
         if (null !== $lastPolledAt = $deviceCode->getLastPolledAt()) {
             $deviceCodeEntity->setLastPolledAt($lastPolledAt);

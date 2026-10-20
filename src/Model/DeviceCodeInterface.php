@@ -44,6 +44,9 @@ interface DeviceCodeInterface
 
     public function setUserApproved(bool $userApproved): self;
 
+    /**
+     * @deprecated since league/oauth2-server-bundle 2.1. It will be removed in 3.0
+     */
     public function getIncludeVerificationUriComplete(): bool;
 
     public function getVerificationUri(): string;
