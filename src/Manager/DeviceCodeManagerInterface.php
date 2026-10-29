@@ -14,5 +14,5 @@ interface DeviceCodeManagerInterface
 
     public function save(DeviceCodeInterface $deviceCode): void;
 
-    public function clearExpired(): int;
+    public function clearExpired(/* ?\DateInterval $expireCleanupDelay = null */): int;
 }

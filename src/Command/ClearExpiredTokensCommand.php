@@ -55,6 +55,12 @@ final class ClearExpiredTokensCommand extends Command
                 InputOption::VALUE_NONE,
                 'Clear expired device codes.'
             )
+            ->addOption(
+                'expire-cleanup-delay',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'The expiration grace period determines how long expired values are retained before being removed. It accepts either a "DateInterval"-compatible string (e.g., "PT5S" for 5 seconds) or a human-readable duration (e.g., "5 seconds").'
+            )
         ;
     }
 
@@ -67,39 +73,49 @@ final class ClearExpiredTokensCommand extends Command
         $clearExpiredAuthCodes = $input->getOption('auth-codes');
         $clearExpiredDeviceCodes = $input->getOption('device-codes');
 
+        if (null !== ($expireCleanupDelay = $input->getOption('expire-cleanup-delay'))) {
+            try {
+                $expireCleanupDelay = str_starts_with($expireCleanupDelay, 'P') ? new \DateInterval($expireCleanupDelay) : \DateInterval::createFromDateString($expireCleanupDelay);
+            } catch (\Throwable $e) {
+                $io->error(\sprintf('Invalid delay format: %s', $e->getMessage()));
+
+                return Command::FAILURE;
+            }
+        }
+
         if (!$clearExpiredAccessTokens && !$clearExpiredRefreshTokens && !$clearExpiredAuthCodes && !$clearExpiredDeviceCodes) {
-            $this->clearExpiredAccessTokens($io);
-            $this->clearExpiredRefreshTokens($io);
-            $this->clearExpiredAuthCodes($io);
+            $this->clearExpiredAccessTokens($io, $expireCleanupDelay);
+            $this->clearExpiredRefreshTokens($io, $expireCleanupDelay);
+            $this->clearExpiredAuthCodes($io, $expireCleanupDelay);
             if ($this->enableDeviceCodeGrant) {
-                $this->clearExpiredDeviceCodes($io);
+                $this->clearExpiredDeviceCodes($io, $expireCleanupDelay);
             }
 
             return Command::SUCCESS;
         }
 
         if ($clearExpiredAccessTokens) {
-            $this->clearExpiredAccessTokens($io);
+            $this->clearExpiredAccessTokens($io, $expireCleanupDelay);
         }
 
         if ($clearExpiredRefreshTokens) {
-            $this->clearExpiredRefreshTokens($io);
+            $this->clearExpiredRefreshTokens($io, $expireCleanupDelay);
         }
 
         if ($clearExpiredAuthCodes) {
-            $this->clearExpiredAuthCodes($io);
+            $this->clearExpiredAuthCodes($io, $expireCleanupDelay);
         }
 
         if ($clearExpiredDeviceCodes) {
-            $this->clearExpiredDeviceCodes($io);
+            $this->clearExpiredDeviceCodes($io, $expireCleanupDelay);
         }
 
         return Command::SUCCESS;
     }
 
-    private function clearExpiredAccessTokens(SymfonyStyle $io): void
+    private function clearExpiredAccessTokens(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numOfClearedAccessTokens = $this->accessTokenManager->clearExpired();
+        $numOfClearedAccessTokens = $this->accessTokenManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
         $io->success(\sprintf(
             'Cleared %d expired access token%s.',
             $numOfClearedAccessTokens,
@@ -107,9 +123,9 @@ final class ClearExpiredTokensCommand extends Command
         ));
     }
 
-    private function clearExpiredRefreshTokens(SymfonyStyle $io): void
+    private function clearExpiredRefreshTokens(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numOfClearedRefreshTokens = $this->refreshTokenManager->clearExpired();
+        $numOfClearedRefreshTokens = $this->refreshTokenManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
         $io->success(\sprintf(
             'Cleared %d expired refresh token%s.',
             $numOfClearedRefreshTokens,
@@ -117,9 +133,9 @@ final class ClearExpiredTokensCommand extends Command
         ));
     }
 
-    private function clearExpiredAuthCodes(SymfonyStyle $io): void
+    private function clearExpiredAuthCodes(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numOfClearedAuthCodes = $this->authorizationCodeManager->clearExpired();
+        $numOfClearedAuthCodes = $this->authorizationCodeManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
         $io->success(\sprintf(
             'Cleared %d expired auth code%s.',
             $numOfClearedAuthCodes,
@@ -127,9 +143,9 @@ final class ClearExpiredTokensCommand extends Command
         ));
     }
 
-    private function clearExpiredDeviceCodes(SymfonyStyle $io): void
+    private function clearExpiredDeviceCodes(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numberOfClearedDeviceCodes = $this->deviceCodeManager->clearExpired();
+        $numberOfClearedDeviceCodes = $this->deviceCodeManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
         $io->success(\sprintf(
             'Cleared %d expired device code%s.',
             $numberOfClearedDeviceCodes,

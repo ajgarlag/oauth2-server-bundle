@@ -12,5 +12,5 @@ interface AccessTokenManagerInterface
 
     public function save(AccessTokenInterface $accessToken): void;
 
-    public function clearExpired(): int;
+    public function clearExpired(/* ?\DateInterval $expireCleanupDelay = null */): int;
 }

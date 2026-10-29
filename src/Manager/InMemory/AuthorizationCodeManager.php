@@ -24,12 +24,12 @@ final class AuthorizationCodeManager implements AuthorizationCodeManagerInterfac
         $this->authorizationCodes[$authCode->getIdentifier()] = $authCode;
     }
 
-    public function clearExpired(): int
+    public function clearExpired(?\DateInterval $expireCleanupDelay = null): int
     {
         $count = \count($this->authorizationCodes);
 
-        $now = new \DateTimeImmutable();
-        $this->authorizationCodes = array_filter($this->authorizationCodes, static fn (AuthorizationCodeInterface $authorizationCode): bool => $authorizationCode->getExpiryDateTime() >= $now);
+        $expiry = (new \DateTimeImmutable())->sub($expireCleanupDelay ?? new \DateInterval('PT0S'));
+        $this->authorizationCodes = array_filter($this->authorizationCodes, static fn (AuthorizationCodeInterface $authorizationCode): bool => $authorizationCode->getExpiryDateTime() >= $expiry);
 
         return $count - \count($this->authorizationCodes);
     }

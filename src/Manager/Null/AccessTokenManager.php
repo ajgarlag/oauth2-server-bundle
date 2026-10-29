@@ -19,7 +19,7 @@ final class AccessTokenManager implements AccessTokenManagerInterface
     {
     }
 
-    public function clearExpired(): int
+    public function clearExpired(?\DateInterval $expireCleanupDelay = null): int
     {
         return 0;
     }

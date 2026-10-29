@@ -12,5 +12,5 @@ interface AuthorizationCodeManagerInterface
 
     public function save(AuthorizationCodeInterface $authCode): void;
 
-    public function clearExpired(): int;
+    public function clearExpired(/* ?\DateInterval $expireCleanupDelay = null */): int;
 }

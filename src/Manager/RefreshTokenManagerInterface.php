@@ -12,5 +12,5 @@ interface RefreshTokenManagerInterface
 
     public function save(RefreshTokenInterface $refreshToken): void;
 
-    public function clearExpired(): int;
+    public function clearExpired(/* ?\DateInterval $expireCleanupDelay = null */): int;
 }
