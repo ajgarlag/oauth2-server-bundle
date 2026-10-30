@@ -115,7 +115,12 @@ final class ClearExpiredTokensCommand extends Command
 
     private function clearExpiredAccessTokens(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numOfClearedAccessTokens = $this->accessTokenManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
+        if (!method_exists($this->accessTokenManager, 'clearExpiredTokens')) {
+            trigger_deprecation('league/oauth2-server-bundle', '2.1', 'Not implementing method "clearExpiredTokens()" in "%s" is deprecated. This method will be required in 3.0.', $this->accessTokenManager::class);
+            $numOfClearedAccessTokens = $this->accessTokenManager->clearExpired();
+        } else {
+            $numOfClearedAccessTokens = $this->accessTokenManager->clearExpiredTokens($expireCleanupDelay);
+        }
         $io->success(\sprintf(
             'Cleared %d expired access token%s.',
             $numOfClearedAccessTokens,
@@ -125,7 +130,12 @@ final class ClearExpiredTokensCommand extends Command
 
     private function clearExpiredRefreshTokens(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numOfClearedRefreshTokens = $this->refreshTokenManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
+        if (!method_exists($this->refreshTokenManager, 'clearExpiredTokens')) {
+            trigger_deprecation('league/oauth2-server-bundle', '2.1', 'Not implementing method "clearExpiredTokens()" in "%s" is deprecated. This method will be required in 3.0.', $this->refreshTokenManager::class);
+            $numOfClearedRefreshTokens = $this->refreshTokenManager->clearExpired();
+        } else {
+            $numOfClearedRefreshTokens = $this->refreshTokenManager->clearExpiredTokens($expireCleanupDelay);
+        }
         $io->success(\sprintf(
             'Cleared %d expired refresh token%s.',
             $numOfClearedRefreshTokens,
@@ -135,7 +145,12 @@ final class ClearExpiredTokensCommand extends Command
 
     private function clearExpiredAuthCodes(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numOfClearedAuthCodes = $this->authorizationCodeManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
+        if (!method_exists($this->authorizationCodeManager, 'clearExpiredTokens')) {
+            trigger_deprecation('league/oauth2-server-bundle', '2.1', 'Not implementing method "clearExpiredTokens()" in "%s" is deprecated. This method will be required in 3.0.', $this->authorizationCodeManager::class);
+            $numOfClearedAuthCodes = $this->authorizationCodeManager->clearExpired();
+        } else {
+            $numOfClearedAuthCodes = $this->authorizationCodeManager->clearExpiredTokens($expireCleanupDelay);
+        }
         $io->success(\sprintf(
             'Cleared %d expired auth code%s.',
             $numOfClearedAuthCodes,
@@ -145,7 +160,12 @@ final class ClearExpiredTokensCommand extends Command
 
     private function clearExpiredDeviceCodes(SymfonyStyle $io, ?\DateInterval $expireCleanupDelay = null): void
     {
-        $numberOfClearedDeviceCodes = $this->deviceCodeManager->clearExpired($expireCleanupDelay); // @phpstan-ignore arguments.count
+        if (!method_exists($this->deviceCodeManager, 'clearExpiredTokens')) {
+            trigger_deprecation('league/oauth2-server-bundle', '2.1', 'Not implementing method "clearExpiredTokens()" in "%s" is deprecated. This method will be required in 3.0.', $this->deviceCodeManager::class);
+            $numberOfClearedDeviceCodes = $this->deviceCodeManager->clearExpired();
+        } else {
+            $numberOfClearedDeviceCodes = $this->deviceCodeManager->clearExpiredTokens($expireCleanupDelay);
+        }
         $io->success(\sprintf(
             'Cleared %d expired device code%s.',
             $numberOfClearedDeviceCodes,

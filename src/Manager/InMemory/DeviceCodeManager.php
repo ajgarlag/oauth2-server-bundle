@@ -35,7 +35,7 @@ final class DeviceCodeManager implements DeviceCodeManagerInterface
         $this->deviceCodes[$deviceCode->getIdentifier()] = $deviceCode;
     }
 
-    public function clearExpired(?\DateInterval $expireCleanupDelay = null): int
+    public function clearExpiredTokens(?\DateInterval $expireCleanupDelay = null): int
     {
         $count = \count($this->deviceCodes);
 
@@ -43,5 +43,10 @@ final class DeviceCodeManager implements DeviceCodeManagerInterface
         $this->deviceCodes = array_filter($this->deviceCodes, static fn (DeviceCodeInterface $accessToken): bool => $accessToken->getExpiry() >= $expiry);
 
         return $count - \count($this->deviceCodes);
+    }
+
+    public function clearExpired(): int
+    {
+        return $this->clearExpiredTokens();
     }
 }

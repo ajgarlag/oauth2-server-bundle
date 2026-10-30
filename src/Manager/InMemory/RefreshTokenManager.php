@@ -24,7 +24,7 @@ final class RefreshTokenManager implements RefreshTokenManagerInterface
         $this->refreshTokens[$refreshToken->getIdentifier()] = $refreshToken;
     }
 
-    public function clearExpired(?\DateInterval $expireCleanupDelay = null): int
+    public function clearExpiredTokens(?\DateInterval $expireCleanupDelay = null): int
     {
         $count = \count($this->refreshTokens);
 
@@ -32,5 +32,10 @@ final class RefreshTokenManager implements RefreshTokenManagerInterface
         $this->refreshTokens = array_filter($this->refreshTokens, static fn (RefreshTokenInterface $refreshToken): bool => $refreshToken->getExpiry() >= $expiry);
 
         return $count - \count($this->refreshTokens);
+    }
+
+    public function clearExpired(): int
+    {
+        return $this->clearExpiredTokens();
     }
 }

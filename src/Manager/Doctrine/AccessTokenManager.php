@@ -37,7 +37,7 @@ final readonly class AccessTokenManager implements AccessTokenManagerInterface
         $this->entityManager->flush();
     }
 
-    public function clearExpired(?\DateInterval $expireCleanupDelay = null): int
+    public function clearExpiredTokens(?\DateInterval $expireCleanupDelay = null): int
     {
         if (!$this->persistAccessToken) {
             return 0;
@@ -79,5 +79,10 @@ final readonly class AccessTokenManager implements AccessTokenManagerInterface
             ->execute();
 
         return \count($ids);
+    }
+
+    public function clearExpired(): int
+    {
+        return $this->clearExpiredTokens();
     }
 }

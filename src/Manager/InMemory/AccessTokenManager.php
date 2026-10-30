@@ -37,7 +37,7 @@ final class AccessTokenManager implements AccessTokenManagerInterface
         $this->accessTokens[$accessToken->getIdentifier()] = $accessToken;
     }
 
-    public function clearExpired(?\DateInterval $expireCleanupDelay = null): int
+    public function clearExpiredTokens(?\DateInterval $expireCleanupDelay = null): int
     {
         if (!$this->persistAccessToken) {
             return 0;
@@ -49,5 +49,10 @@ final class AccessTokenManager implements AccessTokenManagerInterface
         $this->accessTokens = array_filter($this->accessTokens, static fn (AccessTokenInterface $accessToken): bool => $accessToken->getExpiry() >= $expiry);
 
         return $count - \count($this->accessTokens);
+    }
+
+    public function clearExpired(): int
+    {
+        return $this->clearExpiredTokens();
     }
 }

@@ -21,4 +21,6 @@ FROM 1.2 to 2.0
 FROM 2.0 to 2.1
 ---------------
 
- * Pass an additional `?\DateInterval $expireCleanupDelay` parameter when calling the `clearExpired()` method in the `AccessTokenManagerInterface`, `AuthorizationCodeManagerInterface`, `DeviceCodeManagerInterface`, and `RefreshTokenManagerInterface` implementations.
+ * Add new `ExpiredTokenClearerInterface` and extend it in `AccessTokenManagerInterface`, `AuthorizationCodeManagerInterface`, `DeviceCodeManagerInterface`, and `RefreshTokenManagerInterface` implementations.
+ * Deprecate method `ExpiredTokenClearerInterface::clearExpired()`.
+ * Deprecate not implementing method `ExpiredTokenClearerInterface::clearExpiredTokens()`. This method will be required in 3.0
