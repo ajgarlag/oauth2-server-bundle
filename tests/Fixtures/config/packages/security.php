@@ -48,15 +48,5 @@ return static function (ContainerConfigurator $container): void {
                 ],
             ],
         ],
-        'access_control' => [
-            [
-                'path' => '^/authorize',
-                'roles' => 'IS_AUTHENTICATED',
-            ],
-            [
-                'path' => '^/device-code',
-                'roles' => 'IS_AUTHENTICATED',
-            ],
-        ],
     ]);
 };

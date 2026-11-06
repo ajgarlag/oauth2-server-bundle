@@ -27,7 +27,7 @@ final class AuthorizationRequestResolveEvent extends Event
         private readonly AuthorizationRequestInterface $authorizationRequest,
         private readonly array $scopes,
         private readonly ClientInterface $client,
-        private UserInterface $user,
+        private ?UserInterface $user,
     ) {
     }
 
@@ -70,6 +70,40 @@ final class AuthorizationRequestResolveEvent extends Event
 
     public function getUser(): UserInterface
     {
+        if (null === $this->user) {
+            trigger_deprecation(
+                'league/oauth2-server-bundle',
+                '2.1',
+                'Accessing the user when it is not set will return null in 3.0.'
+            );
+
+            return new class implements UserInterface {
+                public function getRoles(): array
+                {
+                    return [];
+                }
+
+                public function getPassword(): null
+                {
+                    return null;
+                }
+
+                public function getSalt(): null
+                {
+                    return null;
+                }
+
+                public function getUserIdentifier(): string
+                {
+                    return 'anonymous-league-oauth2-server-user';
+                }
+
+                public function eraseCredentials(): void
+                {
+                }
+            };
+        }
+
         return $this->user;
     }
 

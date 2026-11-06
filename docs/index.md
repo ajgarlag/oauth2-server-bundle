@@ -158,16 +158,10 @@ For implementation into Symfony projects, please see [bundle documentation](basi
 
 You can verify that everything is working by issuing a `POST` request to the `/token` endpoint.
 
-It is required to control access to the authorization endpoint
-so that only logged-in users can approve authorization requests.
-
-You should review your `config/security.yaml` file. Here is a sample configuration:
-
-```yaml
-security:
-    access_control:
-        - { path: ^/authorize, roles: IS_AUTHENTICATED_REMEMBERED }
-```
+By default, the `RequireUserForAuthorizationListener` (executed with a priority of `256`) will
+listen for authorization requests sent to the `/authorize` endpoint and will redirect unauthenticated
+users to the entry point defined in your security configuration for this path, or return a `401 Unauthorized`
+response if no entry point is defined.
 
 > [!IMPORTANT]
 > The requirement for a logged-in user to approve authorization requests was introduced in version `0.9.0`. In previous versions, it was only a recommendation.

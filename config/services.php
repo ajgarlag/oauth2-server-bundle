@@ -22,6 +22,7 @@ use League\Bundle\OAuth2ServerBundle\Converter\UserConverter;
 use League\Bundle\OAuth2ServerBundle\Converter\UserConverterInterface;
 use League\Bundle\OAuth2ServerBundle\Event\AuthorizationRequestResolveEventFactory;
 use League\Bundle\OAuth2ServerBundle\EventListener\AddClientDefaultScopesListener;
+use League\Bundle\OAuth2ServerBundle\EventListener\RequireUserForAuthorizationListener;
 use League\Bundle\OAuth2ServerBundle\Manager\AccessTokenManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Manager\AuthorizationCodeManagerInterface;
 use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
@@ -340,6 +341,12 @@ return static function (ContainerConfigurator $container): void {
                 param('league.oauth2_server.scopes.default'),
             ])
             ->tag('kernel.event_listener', ['event' => OAuth2Events::PRE_SAVE_CLIENT])
+
+        ->set(RequireUserForAuthorizationListener::class)
+            ->args([
+                service(Security::class),
+            ])
+            ->tag('kernel.event_listener', ['event' => OAuth2Events::AUTHORIZATION_REQUEST_RESOLVE, 'priority' => 256])
 
         // Storage managers
         ->set('league.oauth2_server.manager.in_memory.scope', ScopeManager::class)

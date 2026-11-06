@@ -91,14 +91,9 @@ Add two new firewalls in your security configuration and enable the authenticato
 
 ```yaml
 security:
-    enable_authenticator_manager: true
-
-    firewalls:
-        api_token:
-            pattern: ^/token$
-            security: false
-        api_device_code:
-            pattern: ^/device-code$
+firewalls:
+        oauth2_public:
+            pattern: ^/(device-code|token)$
             security: false
         api:
             pattern: ^/api
@@ -107,7 +102,7 @@ security:
             oauth2: true
 ```
 
-* The `api_token` and `api_device_code` firewall will ensure that anyone can access the `/token` and `/device-code` endpoint respectively in order to be able to retrieve their access tokens or device codes.
+* The `oauth2_public` firewall will ensure that anyone can access the `/token` and `/device-code` endpoint respectively in order to be able to retrieve their access tokens or device codes.
 * The `api` firewall will protect all routes prefixed with `/api` and clients will require a valid access token in order to access them.
 
 Basically, any firewall which sets the `oauth2` parameter to `true` will make any routes that match the selected pattern go through our OAuth 2.0 security layer.
