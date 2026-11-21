@@ -10,6 +10,9 @@ class DeviceCode implements DeviceCodeInterface
 {
     private bool $revoked = false;
 
+    /**
+     * @deprecated since league/oauth2-server-bundle 2.1. It will be removed in 3.0
+     */
     private bool $includeVerificationUriComplete = false;
 
     /**
@@ -99,6 +102,8 @@ class DeviceCode implements DeviceCodeInterface
 
     public function getIncludeVerificationUriComplete(): bool
     {
+        trigger_deprecation('league/oauth2-server-bundle', '2.1', 'The method "getIncludeVerificationUriComplete()" is deprecated and will be removed in 3.0.');
+
         return $this->includeVerificationUriComplete;
     }
 
